@@ -30,6 +30,15 @@ struct VariableExpr : Expr {
         : name(std::move(name)) {}
 };
 
+struct CallExpr : Expr {
+    std::string callee;
+    std::vector<std::unique_ptr<Expr>> arguments;
+
+    CallExpr(std::string callee, std::vector<std::unique_ptr<Expr>> arguments)
+        : callee(std::move(callee)), arguments(std::move(arguments)) {}
+};
+
+
 // a + b
 // x * 10
 struct BinaryExpr : Expr {
@@ -54,6 +63,14 @@ struct BinaryExpr : Expr {
 struct Stmt {
     virtual ~Stmt() = default;
 };
+
+struct ExprStmt : Stmt {
+    std::unique_ptr<Expr> expression;
+
+    ExprStmt(std::unique_ptr<Expr> expression)
+        : expression(std::move(expression)) {}
+};
+
 
 // let x = 10
 struct LetStmt : Stmt {

@@ -20,7 +20,10 @@ private:
     std::unique_ptr<Expr> parsePrimary();
     std::unique_ptr<Expr> parseTerm();
     std::unique_ptr<Expr> parseFactor();
+    std::unique_ptr<Expr> parseEquality();
+    std::unique_ptr<Expr> parseComparison();
     std::vector<std::unique_ptr<Stmt>> parseBlock();
+    std::unique_ptr<Expr> parseCall();
 
     Token peek();
     Token advance();

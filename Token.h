@@ -27,7 +27,8 @@ enum class TokenType {
     Greater,
     GreaterEqual,
     Newline,
-    EqualEqual
+    EqualEqual,
+    BangEqual,
 };
 
 

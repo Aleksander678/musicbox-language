@@ -5,6 +5,8 @@
 #include "AST.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "Interpreter.h"
+#include "Environment.h"
 
 class AstPrinter {
 public:
@@ -59,15 +61,22 @@ int main() {
         "return a + b\n"
         "\n"
         "}\n"
-        "\n";
+        "let y = add(x, 3) + 2 * 3\n"
+        "print(y)\n";
 
     Lexer lexer(code);
     std::vector<Token> tokens = lexer.tokenize();
     Parser parser(tokens);
     std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
 
-    AstPrinter printer;
-    std::cout << printer.print(statements) << std::endl;
+    // AstPrinter printer;
+    // std::cout << printer.print(statements) << std::endl;
+
+    Interpreter interpreter;
+    interpreter.interpret(statements);
 
     return 0;
 }
+
+// g++ -std=c++17 -o interpreter main.cpp Lexer.cpp Parser.cpp Environment.cpp interpreter.cpp Token.cpp
+// ./interpreter

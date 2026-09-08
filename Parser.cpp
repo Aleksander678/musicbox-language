@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "AST.h"
 #include "Token.h"
+#include <stdexcept>
 
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
@@ -27,8 +28,9 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
         return parseReturnStatement();
     }
 
-    advance();
-    return nullptr;
+    std::unique_ptr<Expr> expr = parseExpression();
+    match(TokenType::Newline);
+    return std::make_unique<ExprStmt>(std::move(expr));
 }
 
 std::unique_ptr<Stmt> Parser::parseLetStatement() {
@@ -71,7 +73,34 @@ std::unique_ptr<Stmt> Parser::parseReturnStatement() {
 }
 
 std::unique_ptr<Expr> Parser::parseExpression() {
-    return parseTerm();
+    return parseEquality(); // Or parseComparison depending on your chain
+}
+
+// 2. Add comparison parsing
+std::unique_ptr<Expr> Parser::parseComparison() {
+    std::unique_ptr<Expr> expr = parseTerm(); // Do math first (+, -)
+
+    while (match(TokenType::Less) || match(TokenType::Greater) || 
+           match(TokenType::LessEqual) || match(TokenType::GreaterEqual)) {
+        std::string op = previous().value;
+        std::unique_ptr<Expr> right = parseTerm();
+        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+    }
+
+    return expr;
+}
+
+// 3. Add equality parsing
+std::unique_ptr<Expr> Parser::parseEquality() {
+    std::unique_ptr<Expr> expr = parseComparison(); // Do comparisons first (<, >)
+
+    while (match(TokenType::EqualEqual) || match(TokenType::BangEqual)) {
+        std::string op = previous().value;
+        std::unique_ptr<Expr> right = parseComparison();
+        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+    }
+
+    return expr;
 }
 
 std::unique_ptr<Expr> Parser::parsePrimary() {
@@ -105,12 +134,42 @@ std::unique_ptr<Expr> Parser::parseTerm() {
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::parseFactor() {
+std::unique_ptr<Expr> Parser::parseCall() {
     std::unique_ptr<Expr> expr = parsePrimary();
+
+    while (match(TokenType::OpenParen)) {
+        std::vector<std::unique_ptr<Expr>> arguments;
+
+        if (peek().type != TokenType::CloseParen) {
+            do {
+                arguments.push_back(parseExpression());
+            } while (match(TokenType::Comma));
+        }
+
+        if (!match(TokenType::CloseParen)) {
+            throw std::runtime_error("Expected ')' after arguments.");
+        }
+
+        std::string calleeName = "";
+        if (auto varExpr = dynamic_cast<VariableExpr*>(expr.get())) {
+            calleeName = varExpr->name;
+        } else {
+            throw std::runtime_error("Can only call named functions.");
+        }
+
+        expr = std::make_unique<CallExpr>(calleeName, std::move(arguments));
+    }
+
+    return expr;
+}
+
+
+std::unique_ptr<Expr> Parser::parseFactor() {
+    std::unique_ptr<Expr> expr = parseCall();
 
     while (match(TokenType::Slash) || match(TokenType::Star)) {
         std::string op = previous().value;
-        std::unique_ptr<Expr> right = parsePrimary();
+        std::unique_ptr<Expr> right = parseCall();
         expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
     }
 
