@@ -24,6 +24,8 @@ const std::unordered_map<std::string, TokenType>& Lexer::keywords() {
         {"let", TokenType::Let},
         {"fun", TokenType::Fun},
         {"return", TokenType::Return},
+        {"repeat", TokenType::Repeat},
+        {"if", TokenType::If},
     };
     return map;
 }

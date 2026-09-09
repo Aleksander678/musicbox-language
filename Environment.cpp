@@ -19,3 +19,16 @@ RuntimeValue Environment::get(const std::string& name){
 
     throw std::runtime_error("Undefined variable " + name + ".");
 }
+
+void Environment::assign(const std::string& name, RuntimeValue value) {
+    auto it = values.find(name);
+    if (it != values.end()) {
+        it->second = value;
+        return;
+    }
+    if (enclosing != nullptr) {
+        enclosing->assign(name, value);
+        return;
+    }
+    throw std::runtime_error("Undefined variable '" + name + "'.");
+}

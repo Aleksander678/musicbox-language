@@ -18,6 +18,8 @@ enum class TokenType {
     CloseParen,
     EndOfFile,
     Fun,
+    If, 
+    Repeat,
     Return,
     Comma,
     OpenBrace,

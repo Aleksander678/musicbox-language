@@ -39,6 +39,7 @@ struct CallExpr : Expr {
 };
 
 
+
 // a + b
 // x * 10
 struct BinaryExpr : Expr {
@@ -83,6 +84,39 @@ struct LetStmt : Stmt {
     )
         : name(std::move(name)),
           initializer(std::move(initializer)) {}
+};
+
+struct IfStmt : Stmt {
+    std::unique_ptr<Expr> condition;
+    std::vector<std::unique_ptr<Stmt>> body;
+
+    IfStmt(
+        std::unique_ptr<Expr> condition,
+        std::vector<std::unique_ptr<Stmt>> body
+    )
+        : condition(std::move(condition)),
+          body(std::move(body)) {}
+};
+
+
+struct RepeatStmt : Stmt {
+    std::unique_ptr<Expr> count;
+    std::vector<std::unique_ptr<Stmt>> body;
+
+    RepeatStmt(
+        std::unique_ptr<Expr> count,
+        std::vector<std::unique_ptr<Stmt>> body
+    )
+        : count(std::move(count)),
+          body(std::move(body)) {}
+};
+
+struct AssignStmt : Stmt {
+    std::string name;
+    std::unique_ptr<Expr> value;
+
+    AssignStmt(std::string name, std::unique_ptr<Expr> value)
+        : name(std::move(name)), value(std::move(value)) {}
 };
 
 // return a + b

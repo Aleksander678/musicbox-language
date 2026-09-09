@@ -21,6 +21,7 @@ public:
 
     void define(const std::string& name, RuntimeValue value);
     RuntimeValue get(const std::string& name);
+    void assign(const std::string& name, RuntimeValue value);
 };
 
 #endif

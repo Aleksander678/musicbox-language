@@ -5,6 +5,11 @@
 
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
+Token Parser::peekNext() {
+    if (current + 1 >= tokens.size()) return tokens.back();
+    return tokens[current + 1];
+}
+
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
     std::vector<std::unique_ptr<Stmt>> parsedStatements;
 
@@ -27,10 +32,27 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     if (match(TokenType::Return)) {
         return parseReturnStatement();
     }
+    if (match(TokenType::If)) {
+        return parseIfStatement();
+    }
+    if (match(TokenType::Repeat)) {
+        return parseRepeatStatement();
+    }
+    if (peek().type == TokenType::Identifier && peekNext().type == TokenType::Equals) {
+        return parseAssignStatement();
+    }
 
     std::unique_ptr<Expr> expr = parseExpression();
     match(TokenType::Newline);
     return std::make_unique<ExprStmt>(std::move(expr));
+}
+
+std::unique_ptr<Stmt> Parser::parseAssignStatement() {
+    Token nameToken = advance();      
+    advance();                        
+    std::unique_ptr<Expr> value = parseExpression();
+    match(TokenType::Newline);
+    return std::make_unique<AssignStmt>(nameToken.value, std::move(value));
 }
 
 std::unique_ptr<Stmt> Parser::parseLetStatement() {
@@ -119,7 +141,7 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
         return expr; 
     }
 
-    return nullptr;
+    throw std::runtime_error("Unexpected token '" + peek().value + "' in expression.");
 }
 
 std::unique_ptr<Expr> Parser::parseTerm() {
@@ -162,6 +184,29 @@ std::unique_ptr<Expr> Parser::parseCall() {
 
     return expr;
 }
+
+
+std::unique_ptr<Stmt> Parser::parseIfStatement(){
+    match(TokenType::OpenParen);
+    std::unique_ptr<Expr> condition = parseExpression();
+    match(TokenType::CloseParen);
+    match(TokenType::OpenBrace);
+
+    std::vector<std::unique_ptr<Stmt>> body = parseBlock();
+
+    return std::make_unique<IfStmt>(std::move(condition), std::move(body));
+};
+
+std::unique_ptr<Stmt> Parser::parseRepeatStatement(){
+    match(TokenType::OpenParen);
+    std::unique_ptr<Expr> count = parseExpression();
+    match(TokenType::CloseParen);
+    match(TokenType::OpenBrace);
+
+    std::vector<std::unique_ptr<Stmt>> body = parseBlock();
+    return std::make_unique<RepeatStmt>(std::move(count), std::move(body));
+}
+
 
 
 std::unique_ptr<Expr> Parser::parseFactor() {

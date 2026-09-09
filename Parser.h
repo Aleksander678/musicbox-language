@@ -25,6 +25,10 @@ private:
     std::vector<std::unique_ptr<Stmt>> parseBlock();
     std::unique_ptr<Expr> parseCall();
 
+    std::unique_ptr<Stmt> parseIfStatement();
+    std::unique_ptr<Stmt> parseRepeatStatement();
+    std::unique_ptr<Stmt> parseAssignStatement();
+    Token peekNext();
     Token peek();
     Token advance();
     Token previous();

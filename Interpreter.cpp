@@ -6,6 +6,16 @@ struct ReturnException{
     RuntimeValue value;
 };
 
+
+bool isTruthy(const RuntimeValue& v) {
+    switch (v.type) {
+        case RuntimeValue::Type::Boolean: return std::get<bool>(v.value);
+        case RuntimeValue::Type::Number:  return std::get<double>(v.value) != 0;
+        case RuntimeValue::Type::Null:    return false;
+        default:                          return true;
+    }
+}
+
 void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>>& statements){
     // fill in the function list
     for (const auto& stmt : statements) {
@@ -30,6 +40,37 @@ void Interpreter::execute(Stmt* stmt, Environment& env){
 
     if (auto funcStmt = dynamic_cast<FunctionStmt*>(stmt)){
         functions[funcStmt->name] = funcStmt;
+        return;
+    }
+
+    if (auto ifStmt = dynamic_cast<IfStmt*>(stmt)){
+        RuntimeValue cond = evaluate(ifStmt->condition.get(), env);
+        if(isTruthy(cond)){
+            for (const auto& st : ifStmt->body){
+                execute(st.get(), env);
+            }
+        }
+
+        return;
+    }
+
+    if (auto repeatStmt = dynamic_cast<RepeatStmt*>(stmt)){
+        RuntimeValue count = evaluate(repeatStmt->count.get(), env);
+        if(count.type != RuntimeValue::Type::Number) throw std::runtime_error("repeat(...) requires an integer argument");
+
+        int n = static_cast<int>(std::get<double>(count.value));
+
+        for(int i = 0; i < n; i++){
+            for (const auto& st : repeatStmt->body){
+                execute(st.get(), env);
+            }
+        }
+        return;
+    }
+
+    if (auto assignStmt = dynamic_cast<AssignStmt*>(stmt)) {
+        RuntimeValue val = evaluate(assignStmt->value.get(), env);
+        env.assign(assignStmt->name, val);
         return;
     }
 

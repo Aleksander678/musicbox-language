@@ -25,6 +25,8 @@ std::string tokenTypeToString(TokenType type){
         case TokenType::EqualEqual:   return "EqualEqual";
         case TokenType::EndOfFile:    return "EndOfFile";
         case TokenType::Newline:    return "Newline";
+        case TokenType::If:         return "If";
+        case TokenType::Repeat:      return "repeat";
     }
     return "Unknown";
 }
