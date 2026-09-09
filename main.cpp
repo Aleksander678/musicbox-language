@@ -8,6 +8,9 @@
 #include "Interpreter.h"
 #include "Environment.h"
 
+#include <fstream>   
+#include <sstream>
+
 class AstPrinter {
 public:
     std::string print(const std::vector<std::unique_ptr<Stmt>>& statements) {
@@ -52,28 +55,74 @@ private:
     }
 };
 
-int main() {
-    std::string code =
-        "let x = 10 + 4 * 2.1\n"
-        "\n"
-        "fun add(a, b){\n"
-        "\n"
-        "return a + b\n"
-        "\n"
-        "}\n"
-        "let y = add(x, 3) + 2 * 3\n"
-        "print(y)\n";
+void run(const std::string& code, Interpreter& interpreter) {
+    try {
+        Lexer lexer(code);
+        std::vector<Token> tokens = lexer.tokenize();
+        
+        Parser parser(tokens);
+        std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
 
-    Lexer lexer(code);
-    std::vector<Token> tokens = lexer.tokenize();
-    Parser parser(tokens);
-    std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
+        interpreter.interpret(statements);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+}
 
-    // AstPrinter printer;
-    // std::cout << printer.print(statements) << std::endl;
+void runFile(const std::string& filename){
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file '" << filename << "'\n";
+        exit(1);
+    }
 
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    
     Interpreter interpreter;
-    interpreter.interpret(statements);
+    run(buffer.str(), interpreter);
+}
+
+void runPrompt() {
+    Interpreter interpreter; 
+    std::string line;
+    
+    std::cout << "Mylang REPL 1.0 (Type 'exit' to quit, 'enter' twice to run the code)\n";
+    
+    std::string accumulatedCode; 
+
+    for (;;) {
+        std::cout << ">>> ";
+
+        if (!std::getline(std::cin, line)) {
+            break; 
+        }
+
+        if (line == "exit") {
+            break;
+        }
+
+        if (line.empty()) {
+            if(!accumulatedCode.empty()){
+                run(accumulatedCode, interpreter);
+                accumulatedCode="";
+            }
+            continue;
+        }
+
+        accumulatedCode += line + "\n";
+    }
+}
+
+int main(int argc, char* argv[]) {
+    if (argc > 2) {
+        std::cerr << "Usage: interpreter [script.mylan]\n";
+        return 1;
+    } else if (argc == 2) {
+        runFile(argv[1]);
+    } else {
+        runPrompt();
+    }
 
     return 0;
 }
