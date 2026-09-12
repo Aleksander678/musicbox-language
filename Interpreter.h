@@ -1,6 +1,4 @@
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
-
+#pragma once
 
 #include "AST.h"
 #include "environment.h"
@@ -21,4 +19,3 @@ public:
     RuntimeValue callFunction(CallExpr* callExpr, Environment& callerEnv);
 };
 
-#endif

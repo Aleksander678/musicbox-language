@@ -1,5 +1,4 @@
-#ifndef ENVIRONMENT_H
-#define ENVIRONMENT_H
+#pragma once
 
 #include<variant>
 #include<string>
@@ -24,4 +23,3 @@ public:
     void assign(const std::string& name, RuntimeValue value);
 };
 
-#endif

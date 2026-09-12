@@ -1,10 +1,11 @@
-#ifndef AST_H
-#define AST_H
+#pragma once
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <utility>
+
+
 // ============================================================
 // EXPRESSIONS
 // ============================================================
@@ -30,9 +31,10 @@ struct VariableExpr : Expr {
         : name(std::move(name)) {}
 };
 
+// add(5, 3)
 struct CallExpr : Expr {
-    std::string callee;
-    std::vector<std::unique_ptr<Expr>> arguments;
+    std::string callee; 
+    std::vector<std::unique_ptr<Expr>> arguments; 
 
     CallExpr(std::string callee, std::vector<std::unique_ptr<Expr>> arguments)
         : callee(std::move(callee)), arguments(std::move(arguments)) {}
@@ -73,12 +75,12 @@ struct ExprStmt : Stmt {
 };
 
 
-// let x = 10
-struct LetStmt : Stmt {
+// declare x = 10
+struct DeclareStmt : Stmt {
     std::string name;
     std::unique_ptr<Expr> initializer;
 
-    LetStmt(
+    DeclareStmt(
         std::string name,
         std::unique_ptr<Expr> initializer
     )
@@ -86,11 +88,11 @@ struct LetStmt : Stmt {
           initializer(std::move(initializer)) {}
 };
 
-struct IfStmt : Stmt {
+struct ConditionStmt : Stmt {
     std::unique_ptr<Expr> condition;
     std::vector<std::unique_ptr<Stmt>> body;
 
-    IfStmt(
+    ConditionStmt(
         std::unique_ptr<Expr> condition,
         std::vector<std::unique_ptr<Stmt>> body
     )
@@ -127,7 +129,7 @@ struct ReturnStmt : Stmt {
         : value(std::move(value)) {}
 };
 
-// fun add(a, b) {
+// function add(a, b) {
 //     return a + b
 // }
 struct FunctionStmt : Stmt {
@@ -145,4 +147,3 @@ struct FunctionStmt : Stmt {
           body(std::move(body)) {}
 };
 
-#endif

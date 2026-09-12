@@ -5,7 +5,7 @@ std::string tokenTypeToString(TokenType type){
         case TokenType::Number:       return "Number";
         case TokenType::String:       return "String";
         case TokenType::Identifier:   return "Identifier";
-        case TokenType::Let:          return "Let";
+        case TokenType::Declare:          return "Declare";
         case TokenType::Equals:       return "Equals";
         case TokenType::Plus:         return "Plus";
         case TokenType::Minus:        return "Minus";
@@ -13,7 +13,7 @@ std::string tokenTypeToString(TokenType type){
         case TokenType::Slash:        return "Slash";
         case TokenType::OpenParen:    return "OpenParen";
         case TokenType::CloseParen:   return "CloseParen";
-        case TokenType::Fun:           return "Fun";
+        case TokenType::Function:           return "Function";
         case TokenType::Return:       return "Return";
         case TokenType::Comma:        return "Comma";
         case TokenType::OpenBrace:    return "OpenBrace";
@@ -25,7 +25,7 @@ std::string tokenTypeToString(TokenType type){
         case TokenType::EqualEqual:   return "EqualEqual";
         case TokenType::EndOfFile:    return "EndOfFile";
         case TokenType::Newline:    return "Newline";
-        case TokenType::If:         return "If";
+        case TokenType::Condition:         return "Condition";
         case TokenType::Repeat:      return "repeat";
     }
     return "Unknown";

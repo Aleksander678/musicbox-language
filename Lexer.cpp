@@ -21,11 +21,11 @@ const std::vector<std::string>& Lexer::getErrors() const {
 
 const std::unordered_map<std::string, TokenType>& Lexer::keywords() {
     static const std::unordered_map<std::string, TokenType> map = {
-        {"let", TokenType::Let},
-        {"fun", TokenType::Fun},
+        {"declare", TokenType::Declare},
+        {"function", TokenType::Function},
         {"return", TokenType::Return},
         {"repeat", TokenType::Repeat},
-        {"if", TokenType::If},
+        {"condition", TokenType::Condition},
     };
     return map;
 }

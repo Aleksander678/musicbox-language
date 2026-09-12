@@ -1,0 +1,9 @@
+function factorial(limit) {
+    condition(limit <= 1) {
+        return 1
+    }
+    return limit * factorial(limit - 1)
+}
+
+declare result = factorial(5)
+display(result)

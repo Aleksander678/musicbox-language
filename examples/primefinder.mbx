@@ -1,0 +1,35 @@
+function checkFactor(current, factor) {
+    declare quotient = current / factor
+    declare multiplier = 1
+    declare resolved = 0
+
+    repeat(current) {
+        condition(quotient == multiplier) {
+            resolved = 1
+        }
+        multiplier = multiplier + 1
+    }
+
+    return resolved
+}
+
+declare current = 2
+
+repeat(30) {
+    declare factor = 2
+    declare resolved = 0
+    declare remaining = current - factor
+
+    repeat(remaining) {
+        condition(checkFactor(current, factor) == 1) {
+            resolved = 1
+        }
+        factor = factor + 1
+    }
+
+    condition(resolved == 0) {
+        display(current)
+    }
+
+    current = current + 1
+}

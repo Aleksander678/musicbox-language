@@ -1,0 +1,9 @@
+declare solveTotal = 0
+declare tick = 1
+
+repeat(10) {
+    solveTotal = solveTotal + tick
+    tick = tick + 1
+}
+
+display(solveTotal)

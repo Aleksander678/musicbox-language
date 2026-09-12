@@ -2,7 +2,7 @@
 #include "AST.h"
 #include "Token.h"
 #include <stdexcept>
-
+#include "rules.h"
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
 Token Parser::peekNext() {
@@ -23,17 +23,17 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
 }
 
 std::unique_ptr<Stmt> Parser::parseStatement() {
-    if (match(TokenType::Let)) {
-        return parseLetStatement();
+    if (match(TokenType::Declare)) {
+        return parseDeclareStatement();
     } 
-    if (match(TokenType::Fun)) {
+    if (match(TokenType::Function)) {
         return parseFunctionStatement();
     }
     if (match(TokenType::Return)) {
         return parseReturnStatement();
     }
-    if (match(TokenType::If)) {
-        return parseIfStatement();
+    if (match(TokenType::Condition)) {
+        return parseConditionStatement();
     }
     if (match(TokenType::Repeat)) {
         return parseRepeatStatement();
@@ -55,7 +55,7 @@ std::unique_ptr<Stmt> Parser::parseAssignStatement() {
     return std::make_unique<AssignStmt>(nameToken.value, std::move(value));
 }
 
-std::unique_ptr<Stmt> Parser::parseLetStatement() {
+std::unique_ptr<Stmt> Parser::parseDeclareStatement() {
     Token nameToken = advance();
     std::string varName = nameToken.value;
     
@@ -64,7 +64,11 @@ std::unique_ptr<Stmt> Parser::parseLetStatement() {
     std::unique_ptr<Expr> initializer = parseExpression();
     match(TokenType::Newline);
 
-    return std::make_unique<LetStmt>(varName, std::move(initializer));
+    if(!isNameValid(varName)){
+        throw std::runtime_error("Variable " + varName + " does not belong to the music box.");
+    }
+
+    return std::make_unique<DeclareStmt>(varName, std::move(initializer));
 }
 
 std::unique_ptr<Stmt> Parser::parseFunctionStatement() {
@@ -76,6 +80,11 @@ std::unique_ptr<Stmt> Parser::parseFunctionStatement() {
     if (peek().type != TokenType::CloseParen) {
         do {
             Token paramToken = advance();
+
+            if(!isNameValid(paramToken.value)){
+                throw std::runtime_error("Parameter " + paramToken.value + " of function " + nameToken.value +  " does not belong to the music box.");
+            }
+
             parameters.push_back(paramToken.value);
         } while (match(TokenType::Comma));
     }
@@ -84,6 +93,10 @@ std::unique_ptr<Stmt> Parser::parseFunctionStatement() {
     match(TokenType::OpenBrace);
 
     std::vector<std::unique_ptr<Stmt>> body = parseBlock();
+
+    if(!isNameValid(nameToken.value)){
+        throw std::runtime_error("Function " + nameToken.value +  " does not belong to the music box.");
+    }
 
     return std::make_unique<FunctionStmt>(nameToken.value, std::move(parameters), std::move(body));
 }
@@ -95,12 +108,11 @@ std::unique_ptr<Stmt> Parser::parseReturnStatement() {
 }
 
 std::unique_ptr<Expr> Parser::parseExpression() {
-    return parseEquality(); // Or parseComparison depending on your chain
+    return parseEquality(); 
 }
 
-// 2. Add comparison parsing
 std::unique_ptr<Expr> Parser::parseComparison() {
-    std::unique_ptr<Expr> expr = parseTerm(); // Do math first (+, -)
+    std::unique_ptr<Expr> expr = parseTerm(); 
 
     while (match(TokenType::Less) || match(TokenType::Greater) || 
            match(TokenType::LessEqual) || match(TokenType::GreaterEqual)) {
@@ -112,9 +124,8 @@ std::unique_ptr<Expr> Parser::parseComparison() {
     return expr;
 }
 
-// 3. Add equality parsing
 std::unique_ptr<Expr> Parser::parseEquality() {
-    std::unique_ptr<Expr> expr = parseComparison(); // Do comparisons first (<, >)
+    std::unique_ptr<Expr> expr = parseComparison();
 
     while (match(TokenType::EqualEqual) || match(TokenType::BangEqual)) {
         std::string op = previous().value;
@@ -186,7 +197,7 @@ std::unique_ptr<Expr> Parser::parseCall() {
 }
 
 
-std::unique_ptr<Stmt> Parser::parseIfStatement(){
+std::unique_ptr<Stmt> Parser::parseConditionStatement(){
     match(TokenType::OpenParen);
     std::unique_ptr<Expr> condition = parseExpression();
     match(TokenType::CloseParen);
@@ -194,7 +205,7 @@ std::unique_ptr<Stmt> Parser::parseIfStatement(){
 
     std::vector<std::unique_ptr<Stmt>> body = parseBlock();
 
-    return std::make_unique<IfStmt>(std::move(condition), std::move(body));
+    return std::make_unique<ConditionStmt>(std::move(condition), std::move(body));
 };
 
 std::unique_ptr<Stmt> Parser::parseRepeatStatement(){

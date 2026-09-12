@@ -1,5 +1,4 @@
-#ifndef LEXER_H
-#define LEXER_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -44,4 +43,3 @@ private:
     int startCol = 1;
 };
 
-#endif

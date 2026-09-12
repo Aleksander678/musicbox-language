@@ -1,5 +1,4 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#pragma once
 
 #include <string>
 #include<utility>
@@ -8,7 +7,7 @@ enum class TokenType {
     Number,
     String,
     Identifier,
-    Let,
+    Declare,
     Equals,
     Plus,
     Minus,
@@ -17,8 +16,8 @@ enum class TokenType {
     OpenParen,
     CloseParen,
     EndOfFile,
-    Fun,
-    If, 
+    Function,
+    Condition, 
     Repeat,
     Return,
     Comma,
@@ -46,4 +45,3 @@ struct Token {
 
 std::string tokenTypeToString(TokenType type);
 
-#endif

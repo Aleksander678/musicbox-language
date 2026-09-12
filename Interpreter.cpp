@@ -1,6 +1,6 @@
 #include "interpreter.h"
 #include <iostream>
-
+#include "style.h"
 
 struct ReturnException{
     RuntimeValue value;
@@ -30,23 +30,27 @@ void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>>& statements
 }
     
 void Interpreter::execute(Stmt* stmt, Environment& env){
-    LetStmt* letStmt = dynamic_cast<LetStmt*>(stmt); 
+    DeclareStmt* declareStmt = dynamic_cast<DeclareStmt*>(stmt); 
 
-    if (letStmt != nullptr) {
-        RuntimeValue val = evaluate(letStmt->initializer.get(), env);
-        env.define(letStmt->name, val);
+    if (declareStmt != nullptr) {
+        
+
+        RuntimeValue val = evaluate(declareStmt->initializer.get(), env);
+
+        env.define(declareStmt->name, val);
         return;
     }
 
     if (auto funcStmt = dynamic_cast<FunctionStmt*>(stmt)){
+
         functions[funcStmt->name] = funcStmt;
         return;
     }
 
-    if (auto ifStmt = dynamic_cast<IfStmt*>(stmt)){
-        RuntimeValue cond = evaluate(ifStmt->condition.get(), env);
+    if (auto conditionStmt = dynamic_cast<ConditionStmt*>(stmt)){
+        RuntimeValue cond = evaluate(conditionStmt->condition.get(), env);
         if(isTruthy(cond)){
-            for (const auto& st : ifStmt->body){
+            for (const auto& st : conditionStmt->body){
                 execute(st.get(), env);
             }
         }
@@ -101,10 +105,10 @@ std::string stringify(const RuntimeValue& v) {
 RuntimeValue Interpreter::callFunction(CallExpr* callExpr, Environment& callerEnv){
 
     // print function
-    if (callExpr->callee == "print") {
+    if (callExpr->callee == "display") {
         for (auto& argExpr : callExpr->arguments) {
             RuntimeValue v = evaluate(argExpr.get(), callerEnv);
-            std::cout<<stringify(v)<<" ";
+            style::display(stringify(v));
         }
         std::cout << "\n";
         return {RuntimeValue::Type::Null, nullptr};
