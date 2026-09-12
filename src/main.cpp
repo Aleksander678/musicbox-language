@@ -12,53 +12,10 @@
 #include <fstream>   
 #include <sstream>
 #include "style.h"
-#include<filesystem>
+#include "ASTPrinter.h"
 
-class AstPrinter {
-public:
-    std::string print(const std::vector<std::unique_ptr<Stmt>>& statements) {
-        std::string result = "";
-        for (const auto& stmt : statements) {
-            result += printStmt(stmt.get()) + "\n";
-        }
-        return result;
-    }
 
-private:
-    std::string printStmt(Stmt* stmt) {
-        if (auto letStmt = dynamic_cast<DeclareStmt*>(stmt)) {
-            return "(let " + letStmt->name + " = " + printExpr(letStmt->initializer.get()) + ")";
-        }
-        if (auto retStmt = dynamic_cast<ReturnStmt*>(stmt)) {
-            return "(return " + printExpr(retStmt->value.get()) + ")";
-        }
-        if (auto funStmt = dynamic_cast<FunctionStmt*>(stmt)) {
-            std::string bodyStr = "";
-            for (const auto& s : funStmt->body) {
-                bodyStr += "  " + printStmt(s.get()) + "\n";
-            }
-            return "(fun " + funStmt->name + "(...) {\n" + bodyStr + "})";
-        }
-        return "(unknown stmt)";
-    }
-
-    std::string printExpr(Expr* expr) {
-        if (!expr) return "nil";
-
-        if (auto lit = dynamic_cast<LiteralExpr*>(expr)) {
-            return lit->value;
-        }
-        if (auto var = dynamic_cast<VariableExpr*>(expr)) {
-            return var->name;
-        }
-        if (auto bin = dynamic_cast<BinaryExpr*>(expr)) {
-            return "(" + bin->op + " " + printExpr(bin->left.get()) + " " + printExpr(bin->right.get()) + ")";
-        }
-        return "(unknown expr)";
-    }
-};
-
-void run(const std::string& code, Interpreter& interpreter) {
+void run(const std::string& code, Interpreter& interpreter, bool showTree) {
     try {
         Lexer lexer(code);
         std::vector<Token> tokens = lexer.tokenize();
@@ -66,16 +23,22 @@ void run(const std::string& code, Interpreter& interpreter) {
         Parser parser(tokens);
         std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
 
+        if (showTree) {
+            AstPrinter printer;
+            std::cout << printer.print(statements);
+            return;
+        }
+
         interpreter.interpret(statements);
     } catch (const std::exception& e) {
         style::error(std::string(e.what()));
     }
 }
 
-void runFile(const std::string& filename){
+void runFile(const std::string& filename, bool showTree){
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file '" << filename << "'\n";
+        style::error("Error: Could not open file '" +  filename + "'\n");
         exit(1);
     }
 
@@ -83,7 +46,7 @@ void runFile(const std::string& filename){
     buffer << file.rdbuf();
     
     Interpreter interpreter;
-    run(buffer.str(), interpreter);
+    run(buffer.str(), interpreter, showTree);
 }
 
 void runPrompt() {
@@ -107,7 +70,7 @@ void runPrompt() {
 
         if (line.empty()) {
             if(!accumulatedCode.empty()){
-                run(accumulatedCode, interpreter);
+                run(accumulatedCode, interpreter, false);
                 accumulatedCode="";
             }
             continue;
@@ -118,28 +81,41 @@ void runPrompt() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc > 2) {
-        style::error("Usage: interpreter [script.mbx]");
-        return 1;
-    } else if (argc == 2) {
-        std::filesystem::path path(argv[1]);
-        std::string ext = path.extension().string();
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    std::vector<std::string> args(argv + 1, argv + argc);
+    bool showTree = false;
+    std::string filename;
 
-        if (ext != ".mbx") {
-            style::error("Error: expected a .mbx file, got '" 
-                    + path.extension().string());
-            return 2;
+
+    for (const auto& arg : args){
+        if (arg == "--tree"){ // --tree prints the ast tree
+            showTree = true;
+        } else if (filename.empty()){
+            filename = arg;
+        } else {
+            style::error("Usage: interpreter [--tree] [script.mbx]");
+            return 1;
         }
-
-        runFile(argv[1]);
-    } else {
-        runPrompt();
     }
 
+    if (filename.empty()) {
+        if (showTree) {
+            style::error("--tree requires a script file.");
+            return 1;
+        }
+        runPrompt();
+        return 0;
+    }
+
+    std::filesystem::path path(filename);
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+    if (ext != ".mbx") {
+        style::error("Expected a .mbx file, got '" + path.extension().string() + "'");
+        return 2;
+    }
+
+    runFile(filename, showTree);
     return 0;
 }
 
-// To run: 
-// g++ -std=c++17 -o musicbox main.cpp Lexer.cpp Parser.cpp Environment.cpp interpreter.cpp Token.cpp
-// ./musicbox
