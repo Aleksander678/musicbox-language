@@ -1,4 +1,4 @@
-# Music Box 
+# Music Box Programming Language
 
 Music Box is a small tree-walking interpreter of my own design, built in C++.
 It looks like an ordinary scripting language — until it starts rejecting your variable names for reasons it won't explain.
