@@ -10,7 +10,7 @@ The puzzle is to figure out why, without looking into the source code. The prefe
 Requires a C++17-capable compiler.
 
 ```
-g++ -std=c++17 -o musicbox main.cpp Lexer.cpp Parser.cpp Environment.cpp interpreter.cpp Token.cpp
+g++ -std=c++17 -o musicbox src/main.cpp src/Lexer.cpp src/Parser.cpp src/Environment.cpp src/Interpreter.cpp src/Token.cpp
 ```
 
 ## Running
