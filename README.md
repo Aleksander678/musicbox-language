@@ -1,9 +1,9 @@
 # Music Box Programming Language
 
 Music Box is a small tree-walking interpreter built in C++.
-It looks like an ordinary scripting language, until it starts rejecting your variable names for reasons it won't explain.
+It looks like an ordinary scripting language, until you try to name something. Every single word in a working Music Box program follows one rule — your variable names, your function names, even the language's own keywords.
 
-The puzzle is to figure out why, without looking into the source code. The preferable way is to figure things out on your own, but as a hint you can look into examples provided in ./examples.
+The puzzle is to figure out the rule and learn to write code that works, without looking into the source code. The preferable way is to work it out on your own, but as a hint you can look into examples provided in ./examples.
 
 ## Building 
 
